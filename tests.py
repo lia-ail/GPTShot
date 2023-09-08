@@ -1,13 +1,16 @@
 import tkinter as tk
 import pystray
+import pyperclip
 from IMG_rec import screen_shot
 
 
 class DragSelectApp:
     def __init__(self, r, image, shift):
         self.root_window = r
+        self.root_window.bind("<Escape>", lambda e: self.hide_w())
         self.output_window = None
         self.output_area = None
+
         self.image = image
         self.icon = None
         self.language = "ENG"
@@ -29,11 +32,16 @@ class DragSelectApp:
         self.shift = shift
 
         self.output_window = tk.Toplevel()
-        self.output_window.geometry("1000x300")
+        self.output_window.geometry("900x450")
+        for i in range(3):
+            self.output_window.columnconfigure(i, weight=1)
+            self.output_window.rowconfigure(i, weight=1)
         self.output_window.title("Output")
         self.output_window.protocol("WM_DELETE_WINDOW", self.on_close_output)
-        self.output_area = tk.Text(self.output_window, width=900, height=150)
-        self.output_area.place(x=0, y=0)
+        self.copy_button = tk.Button(self.output_window, text="Copy output text", command=self.copy_button)
+        self.copy_button.grid(column=0, row=2)
+        self.output_area = tk.Text(self.output_window)
+        self.output_area.grid(column=0, row=0, columnspan=3, rowspan=2)
         self.output_window.withdraw()
 
     def on_button_press(self, event):
@@ -65,6 +73,7 @@ class DragSelectApp:
 
     def quit_window(self, ic, item):
         self.icon.stop()
+        self.output_window.destroy()
         self.root_window.destroy()
 
     def hide_w(self):
@@ -112,43 +121,26 @@ class DragSelectApp:
             ))
 
             self.icon.run()
-            self.root_window.deiconify()
 
     def ok(self):
-        text = screen_shot(self.start_x, self.start_y, self.cur_x, self.cur_y, self.shift, self.language)
+        text = screen_shot(min(self.start_x, self.cur_x),
+                           min(self.start_y, self.cur_y),
+                           max(self.cur_x, self.start_x),
+                           max(self.cur_y, self.start_y),
+                           self.shift,
+                           self.language)
         self.root_window.withdraw()
         self.output_window.deiconify()
         self.output_area.insert(tk.END, text)
         self.output_window.focus_force()
-        self.start_menu()
-
-        # self.hide_w()
-        # self.output_area.insert(tk.END, text)
-        # self.output_window.deiconify()
-
-        # self.hide_w()
-        # self.output_window.deiconify()
 
     def on_close_output(self):
         self.output_window.destroy()
         self.output_window, self.output_area = None, None
+        self.start_menu()
 
-
-
-# if __name__ == "__main__":
-#     root = tk.Tk()
-#     root.attributes("-fullscreen", True)
-#     root.attributes("-alpha", 0.4)
-#     root.bind("<Escape>", lambda e, r=root: r.destroy())
-#     app = DragSelectApp(root)
-#     root.mainloop()
-
-
-
-
-
-
-
-
-
+    def copy_button(self):
+        pyperclip.copy(self.output_area.get("1.0", tk.END).strip())
+        self.output_window.withdraw()
+        self.start_menu()
 
