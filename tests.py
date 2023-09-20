@@ -135,8 +135,8 @@ class DragSelectApp:
         self.output_window.focus_force()
 
     def on_close_output(self):
-        self.output_window.destroy()
-        self.output_window, self.output_area = None, None
+        self.output_area.delete("1.0", tk.END)
+        self.output_window.withdraw()
         self.start_menu()
 
     def copy_button(self):
